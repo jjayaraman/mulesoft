@@ -1,0 +1,33 @@
+#%RAML 1.0
+title: Web API
+description: Web API
+version: '1.0'
+mediaType: application/json
+protocols:
+  - HTTP
+baseUri: ''
+/countries:
+  get:
+    description: |
+      Returns list of countries with code and description
+    responses:
+      '200':
+        body:
+          application/json:
+            type: object
+            properties:
+              _id:
+                required: true
+                example: 5b76de9e768c9802b1c3848b
+                description: primary key
+                type: string
+              name:
+                required: true
+                example: Afghanistan
+                description: country description
+                type: string
+              code:
+                required: true
+                example: AF
+                description: country code
+                type: string

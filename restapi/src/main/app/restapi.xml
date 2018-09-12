@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <mongo:config name="Dev_Mongo_DB"  doc:name="Mongo DB" host="mongo-euclid-web-s1.dev.eba.europa.eu:27017" password="euclid123web456" username="euclid-web-user1" authenticationDatabase="admin" database="euclid_web"/>
+     <flow name="restapiFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+        <mongo:find-documents config-ref="Dev_Mongo_DB" collection="country" doc:name="Mongo DB"  />
+        <dw:transform-message doc:name="Transform Message" metadata:id="614de524-bd86-4bfa-868a-020f47398ce1">
+            <dw:input-payload doc:sample="sample_data\string.dwl" mimeType="application/java"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <set-payload value="#[payload]" doc:name="Set Payload" metadata:id="f5f37aa6-87e0-4d84-8580-013564ee1353"/>
+         
+        <logger message="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  end xxxxxxxxxxxxxxxxxxxxxxxx" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
