@@ -11,9 +11,10 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     <mongo:config name="Dev_Mongo_DB"  doc:name="Mongo DB" host="mongo-euclid-web-s1.dev.eba.europa.eu:27017" password="euclid123web456" username="euclid-web-user1" authenticationDatabase="admin" database="euclid_web"/>
+    <mongo:config name="Mongo_DB_Local_Configuration" username="jay" password="jay" database="admin" doc:name="Mongo DB: Configuration"/>
      <flow name="restapiFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
-        <mongo:find-documents config-ref="Dev_Mongo_DB" collection="country" doc:name="Mongo DB"  />
+        <mongo:find-documents config-ref="Mongo_DB_Local_Configuration" collection="country" doc:name="Mongo DB"  />
         <dw:transform-message doc:name="Transform Message" metadata:id="614de524-bd86-4bfa-868a-020f47398ce1">
             <dw:input-payload doc:sample="sample_data\string.dwl" mimeType="application/java"/>
             <dw:set-payload><![CDATA[%dw 1.0

@@ -1,0 +1,27 @@
+#%RAML 1.0
+version: v1
+title: hello
+
+securitySchemes: 
+  
+  basic:
+    type: Basic Authentication
+
+securedBy: 
+  basic
+
+/hello:
+  get:
+    responses: 
+      200:
+        body: 
+          application/json:
+
+/basic:
+  get:
+    securedBy: basic
+    responses: 
+      200:
+        body: 
+          application/json:
+            
