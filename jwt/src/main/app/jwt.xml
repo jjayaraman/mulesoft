@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns="http://www.mulesoft.org/schema/mule/core" 
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" 
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+   <spring:beans>
+         <context:annotation-config/>
+        <spring:bean id="jwtValidatior" name="jwtValidatior" class="com.jai.security.jwt.JWTValidator"/>
+    </spring:beans>
+
+
+	<http:listener-config name="jwt-httpListenerConfig"
+		host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration" />
+ 
+	<apikit:config name="jwt-config" raml="jwt.raml"
+		consoleEnabled="false" doc:name="Router" />
+	<flow name="jwt-main">
+		<http:listener config-ref="jwt-httpListenerConfig" path="/api/*"
+			doc:name="HTTP" />
+		<apikit:router config-ref="jwt-config" doc:name="APIkit Router" />
+		<exception-strategy ref="jwt-apiKitGlobalExceptionMapping"
+			doc:name="Reference Exception Strategy" />
+	</flow>
+	<flow name="jwt-console">
+		<http:listener config-ref="jwt-httpListenerConfig" path="/console/*"
+			doc:name="HTTP" />
+		<apikit:console config-ref="jwt-config" doc:name="APIkit Console" />
+	</flow>
+    <sub-flow name="tokenValidation_Flow">
+        <set-property propertyName="token" value="#[message.outboundProperties['authorization']]" doc:name="Property token"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="#[message.inboundProperties['authorization'] != null]">
+                <logger message="Found Authorization header" level="INFO" doc:name="Found Auth Logger"/>
+                <invoke object-ref="jwtValidator" method="validateJWT" methodArguments="#[flowVars.bearerToken]" doc:name="Invoke JWTValidator"/>
+                <set-payload value="validation completed" doc:name="Set Payload"/>
+            </when>
+            <when expression="#[message.inboundProperties['authorization'] == null]">
+                <logger message="No Auth header found" level="INFO" doc:name="Logger"/>
+            </when>
+            <otherwise>
+                <logger message="Default logger" level="INFO" doc:name="Logger"/>
+            </otherwise>
+        </choice>
+    </sub-flow>
+	<flow name="get:/secured:jwt-config">
+		<logger message="#[message.inboundProperties]" level="INFO"
+			doc:name="Logger" />
+        <flow-ref name="tokenValidation_Flow" doc:name="Flow Reference"/>
+		<logger level="INFO" doc:name="Logger" message="flow completed" />
+	</flow>
+	<apikit:mapping-exception-strategy
+		name="jwt-apiKitGlobalExceptionMapping">
+		<apikit:mapping statusCode="404">
+			<apikit:exception
+				value="org.mule.module.apikit.exception.NotFoundException" />
+			<set-property propertyName="Content-Type" value="application/json"
+				doc:name="Property" />
+			<set-payload
+				value="{ &quot;message&quot;: &quot;Resource not found&quot; }"
+				doc:name="Set Payload" />
+		</apikit:mapping>
+		<apikit:mapping statusCode="405">
+			<apikit:exception
+				value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+			<set-property propertyName="Content-Type" value="application/json"
+				doc:name="Property" />
+			<set-payload
+				value="{ &quot;message&quot;: &quot;Method not allowed&quot; }"
+				doc:name="Set Payload" />
+		</apikit:mapping>
+		<apikit:mapping statusCode="415">
+			<apikit:exception
+				value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+			<set-property propertyName="Content-Type" value="application/json"
+				doc:name="Property" />
+			<set-payload
+				value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }"
+				doc:name="Set Payload" />
+		</apikit:mapping>
+		<apikit:mapping statusCode="406">
+			<apikit:exception
+				value="org.mule.module.apikit.exception.NotAcceptableException" />
+			<set-property propertyName="Content-Type" value="application/json"
+				doc:name="Property" />
+			<set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }"
+				doc:name="Set Payload" />
+		</apikit:mapping>
+		<apikit:mapping statusCode="400">
+			<apikit:exception
+				value="org.mule.module.apikit.exception.BadRequestException" />
+			<set-property propertyName="Content-Type" value="application/json"
+				doc:name="Property" />
+			<set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }"
+				doc:name="Set Payload" />
+		</apikit:mapping>
+	</apikit:mapping-exception-strategy>
+</mule>
