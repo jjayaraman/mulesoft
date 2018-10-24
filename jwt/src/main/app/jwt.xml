@@ -57,7 +57,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 	<flow name="get:/secured:jwt-config">
 		<logger message="#[message.inboundProperties]" level="INFO"
 			doc:name="Logger" />
-		<flow-ref name="tokenValidation_Flow" doc:name="Flow Reference" />
+		<flow-ref name="tokenValidation_Flow" doc:name="Flow Reference - validate" />
 		<logger level="INFO" doc:name="Logger" message="flow completed" />
 	</flow>
 	<apikit:mapping-exception-strategy

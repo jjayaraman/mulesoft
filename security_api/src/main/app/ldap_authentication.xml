@@ -6,7 +6,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/ldap http://www.mulesoft.org/schema/mule/ldap/current/mule-ldap.xsd">
     <http:listener-config name="ldap_authentication-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     <apikit:config name="ldap_authentication-config" raml="ldap_authentication.raml" consoleEnabled="false" doc:name="Router"/>
-    <ldap:config name="LDAP__Configuration" authDn="" url="" doc:name="LDAP: Configuration"/>
+    <ldap:config name="LDAP__Configuration" authDn="uid=admin,ou=system" url="ldap://localhost:10389" doc:name="LDAP: Configuration" authPassword="secret"/>
     <flow name="ldap_authentication-main">
         <http:listener config-ref="ldap_authentication-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
         <apikit:router config-ref="ldap_authentication-config" doc:name="APIkit Router"/>

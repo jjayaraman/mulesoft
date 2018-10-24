@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <spring:beans>
+        <spring:bean  name="inv" class="com.jai.basics.InvokeCheck" />
+    </spring:beans>
+    <asynchronous-processing-strategy name="Asynchronous_Processing_Strategy" maxThreads="10" minThreads="3" threadTTL="60" threadWaitTimeout="500" doc:name="Asynchronous Processing Strategy"/>
+    <flow name="basics1Flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/api" doc:name="HTTP"/>
+        <logger message="Msg &gt;&gt; #[message]" level="INFO" doc:name="Logger"/>
+        <flow-ref name="basics1Sub_Flow2" doc:name="Flow Reference"/>
+        <set-payload value="#[payload]" doc:name="Set Payload" mimeType="application/json"/>
+    </flow>
+    <sub-flow name="basics1Sub_Flow1">
+        <logger message="before regex" level="INFO" doc:name="Logger"/>
+        <regex-filter value="2213" pattern="^[0-9]*$" doc:name="Regex"/>
+        <logger message="after regex" level="INFO" doc:name="Logger"/>
+        <set-payload value="kumar" doc:name="Set Payload"/>
+        <payload-type-filter expectedType="java.lang.String" doc:name="Payload"/>
+        <logger level="INFO" doc:name="Logger"/>
+        <wildcard-filter pattern="*jay*" caseSensitive="true" doc:name="Wildcard"/>
+        <logger message="End,,,,,," level="INFO" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="basics1Sub_Flow2">
+        <dw:transform-message doc:name="Transform Message" metadata:id="c98fbfce-29ca-4c67-8a06-a8e1ccbaae98">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+inboundProperties."http.listener.path"]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+    <sub-flow name="basics1Sub_Flow3">
+        <logger message="X  &gt;&gt; #[message.inboundProperties.'http.query.params'.get('x')]" level="INFO" doc:name="Logger"/>
+        <exception-type-filter expectedType="java.lang.Exception" doc:name="Exception"/>
+        <invoke object-ref="inv" method="exc" doc:name="Invoke"/>
+        <payload-type-filter expectedType="java.lang.Exception" doc:name="Payload"/>
+        <logger message="res &gt;&gt; #[payload]" level="INFO" doc:name="Logger"/>
+        <invoke object-ref="inv" method="add" methodArguments="#[message.inboundProperties.'http.query.params'.get('x')],#[message.inboundProperties.'http.query.params'.get('y')]" doc:name="Invoke"/>
+        <logger message="#[message.inboundProperties.'http.query.string']" level="INFO" doc:name="Logger"/>
+    </sub-flow>
+</mule>

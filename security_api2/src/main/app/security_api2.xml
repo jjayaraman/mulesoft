@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ldap="http://www.mulesoft.org/schema/mule/ldap" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/schema/mule/spring-security/current/mule-spring-security.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ldap http://www.mulesoft.org/schema/mule/ldap/current/mule-ldap.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+   
+    <spring:beans>
+    <ss:authentication-manager alias="authenticationManager">
+      <ss:authentication-provider>
+        <ss:user-service id="userService">
+          <ss:user name="user" password="password" authorities="ROLE_ADMIN" />
+          <ss:user name="jay" password="jay" authorities="ROLE_ANON" />
+        </ss:user-service>
+      </ss:authentication-provider>
+    </ss:authentication-manager>
+  </spring:beans>
+ 
+  <mule-ss:security-manager name="securityManager">
+      <mule-ss:delegate-security-provider name="memory-provider" delegate-ref="authenticationManager" />
+  </mule-ss:security-manager>
+ 
+   
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <ldap:config name="LDAP__Configuration" authDn="uid=admin,ou=system" authPassword="secret" url="ldap://localhost:10389" doc:name="LDAP: Configuration"/>
+    <flow name="security_api2Flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/api" doc:name="HTTP"/>
+        <ldap:bind config-ref="LDAP__Configuration" authPassword="secre" authDn="uid=admin,ou=system" doc:name="LDAP"/>
+        <exception-type-filter expectedType="javax.naming.AuthenticationException" doc:name="Exception"/>
+        <logger message="#[message.exception]" level="INFO" doc:name="Logger"/>
+        <choice doc:name="Choice">
+            <when expression="true">
+                <set-payload value="1" doc:name="Set Payload"/>
+            </when>
+            <otherwise>
+                <set-payload value="hello ldap" doc:name="Set Payload"/>
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

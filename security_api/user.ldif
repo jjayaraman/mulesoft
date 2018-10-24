@@ -1,0 +1,16 @@
+# File captain_hook.ldif
+dn: ou=people,o=jkg
+objectclass: organizationalUnit
+objectclass: top
+ou: people
+
+dn: cn=James Hook,ou=people,o=jkg
+objectclass: inetOrgPerson
+objectclass: organizationalPerson
+objectclass: person
+objectclass: top
+cn: Jayakumar Jayaraman
+description: Super star IT developer
+sn: Jay
+mail: india.jai@gmail.com
+userpassword: password
